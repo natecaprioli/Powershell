@@ -1,4 +1,4 @@
-﻿## Nate Caprioli
+## Nate Caprioli
 ## Inventory Script that output to a csv (later a nice report) 
 ## Requirements:  Must be run from a PC with RSAT installed. 
 ## Pre-Requisites: Must have a local account/domain account with WinRM configured
@@ -54,9 +54,9 @@ if($DHCPsubnet = '255.255.255.0')
         
         ## Some logic to check if hostname is null, if not then continue
         if($gethostname -notlike $null) {
-        ## Enters PSSession
-        $session = New-PSSession -ComputerName $gethostname
-        if($session) {
+                                        ## Enters PSSession
+                                        $session = New-PSSession -ComputerName $gethostname
+                                        if($session) {
 
         ## Gets OS Version(windows only currently)
         $getOSver = invoke-command -Session $session -EA SilentlyContinue -scriptblock {(Get-WmiObject win32_operatingsystem).Caption}
@@ -108,41 +108,41 @@ if($DHCPsubnet = '255.255.255.0')
         ## Start writing for the actual reporting version
         $testOutput = 
         @([pscustomobject]@{
-            Hostname=$gethostname;
-            LastUser=$getLastUser
+            Hostname=$gethostname | Out-String;
+            LastUser=$getLastUser | Out-String;
             IPAddress=$getNetworkAdapters.IPAddress | Out-String;
-            MacAddress=$getmac;
-            OSVersion=$getOSver;
+            MacAddress=$getmac | Out-String;
+            OSVersion=$getOSver | Out-String;
             ShareName=$getShareInfo.Name | Out-String;
             SharePath=$getShareInfo | ForEach-Object{$_.Path + '.'} | Out-String;
             ShareDesc=$getShareInfo | foreach-object{$_.Description + '.'} |  Out-String;
             HDDLetter=$getHDDSpace.DeviceID | Out-String;
             HDDUsedSpaceGB=$getHDDSpace | ForEach-Object{($_.Size / 1GB -as [int]) - ($_.FreeSpace / 1GB) -as [int]} | out-string;
             HDDFreeSpaceGB=$getHDDSpace | ForEach-Object{($_.FreeSpace / 1GB) -as [int]} | out-string ;
-            Manufacturer=$getMfg;
-            Model=$getModel;
-            SerialNumber=$getSerial;
-            BiosVersion=$getBiosVer;
-            Processor=$getProc;
-            Sockets=$getPCores;
-            Cores=$getTCores;
-            Memory=$getMem;
-            GPU=$getGPU;
-            LastReboot=$getLastReboot;
-            LastPatchDate=$getLastPatch;
-            PSVersion=$getPSVersion;
-            HardDriveModel=$getLogicalDriveModel.Model;
-            HardDriveSerial=$getLogicalDriveModel.SerialNumber;
-            HardDriveSizeinGB=$getLogicalDriveModel.SizeInGB
+            Manufacturer=$getMfg | Out-String;
+            Model=$getModel | Out-String;
+            SerialNumber=$getSerial | Out-String;
+            BiosVersion=$getBiosVer | Out-String;
+            Processor=$getProc | Out-String;
+            Sockets=$getPCores | Out-String;
+            Cores=$getTCores | Out-String;
+            Memory=$getMem | Out-String;
+            GPU=$getGPU | Out-String;
+            LastReboot=$getLastReboot | Out-String;
+            LastPatchDate=$getLastPatch | Out-String;
+            PSVersion=$getPSVersion | Out-String;
+            HardDriveModel=$getLogicalDriveModel.Model | Out-String;
+            HardDriveSerial=$getLogicalDriveModel.SerialNumber | Out-String;
+            HardDriveSizeinGB=$getLogicalDriveModel.SizeInGB | Out-String;
             IPAddressForRef=$getNetworkAdapters.IPAddress | Out-String;
-            DefaultGateway=$getNetworkAdapters.DefaultIPGateway;
-            NetAdapterDesc=$getNetworkAdapters.Description;
-            DCHPEnabled=$getNetworkAdapters.DHCPEnabled;
-            ComputerName=$getNetworkAdapters.PSComputerName;
-            PendingUpdates=$getPendingUpdates.WindowsUpdate;
-            PendingCompRen=$getPendingUpdates.PendComputerRename;
-            PendingFileRen=$getPendingUpdates.PendFileRename;
-            PendingReboot=$getPendingUpdates.RebootPending
+            DefaultGateway=$getNetworkAdapters.DefaultIPGateway | Out-String;
+            NetAdapterDesc=$getNetworkAdapters.Description | Out-String;
+            DCHPEnabled=$getNetworkAdapters.DHCPEnabled | Out-String;
+            ComputerName=$getNetworkAdapters.PSComputerName | Out-String;
+            PendingUpdates=$getPendingUpdates.WindowsUpdate | Out-String;
+            PendingCompRen=$getPendingUpdates.PendComputerRename | Out-String;
+            PendingFileRen=$getPendingUpdates.PendFileRename | Out-String;
+            PendingReboot=$getPendingUpdates.RebootPending | Out-String;
             WindowsFWprofile=$getFireWallStatus.Name | Out-String;
             WindowsFWStatus=$getFireWallStatus.enabled | ForEach-Object{if($_ -eq '1'){Write-Output Enabled}} | Out-String;
             
@@ -152,27 +152,19 @@ if($DHCPsubnet = '255.255.255.0')
 
         ## This forces the output to not use elipsis and truncate our data
         $FormatEnumerationLimit=-1
-        ## Supposedly, this outputs everything into one grid for single pane viewing pleasure
-
-
-
-        $testOutput
-
+        ## This outputs everything into one grid for single pane viewing pleasure
         $OutputArray += $testOutput
         
-        
-        
-
         ## After all code is ran, ups the integer number by 1
         $beginIP++
         Exit-PSSession
-        }
-        else
-        {
-        Write-Output "Hostname: $gethostname IPAddress: $beginOctet.$beginIP MacAddress: $getmac  OSVersion: N/A `n"
-        $beginIP++
-        }
-        }
+                                                      }
+                                                    else
+                                                      {
+                                                      Write-Output "Hostname: $gethostname IPAddress: $beginOctet.$beginIP MacAddress: $getmac  OSVersion: N/A `n"
+                                                      $beginIP++
+                                                      }
+                                                      }
         
         ## Continuation of the if $gethostname is $null else statement)
         else {   
@@ -192,4 +184,4 @@ if($DHCPsubnet = '255.255.255.0')
        }
     }
 
-    $OutputArray | Out-HtmlView -Style nowrap
+    $OutputArray | Out-HtmlView -Style nowrap -ScrollX
