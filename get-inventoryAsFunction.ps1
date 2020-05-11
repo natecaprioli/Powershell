@@ -7,7 +7,7 @@ function get-inventory {
 
   ## Gets hostname via .net PS
   $gethostname = $env:COMPUTERNAME
-  
+
   ## Gets OS Version(windows only currently)
   $getOSver = (Get-WmiObject win32_operatingsystem).Caption 
 
@@ -41,7 +41,7 @@ function get-inventory {
   $getFireWallStatus = (Get-NetFirewallProfile) 
   $getInstalledSoftware = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*) 
   $getPSVersion = ($PSVersionTable.PSVersion).Major 
-  $testOutput = 
+  $FinalOutput = 
   @([pscustomobject]@{
       Hostname          = $gethostname | Out-String;
       LastUser          = $getLastUser | Out-String;
@@ -88,7 +88,7 @@ function get-inventory {
   $FormatEnumerationLimit = -1
   ## This outputs everything into one grid for single pane viewing pleasure
     
-  $testOutput | Out-GridView
+  $FinalOutput | Out-GridView
   
 }
 
