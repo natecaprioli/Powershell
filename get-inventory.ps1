@@ -77,7 +77,6 @@ if ($DHCPsubnet = '255.255.255.0') {
           $getLogicalDriveModel = Invoke-Command -Session $session -EA SilentlyContinue -ScriptBlock { (Get-WmiObject -Class win32_diskdrive | Select-Object Model, SerialNumber, Caption, @{Name = "SizeinGB"; Expression = { [math]::Round($_.Size / 1GB) } }) }
           $getNetworkAdapters = invoke-command -Session $session -EA SilentlyContinue -ScriptBlock { get-wmiobject -class win32_networkadapterconfiguration -filter 'IPenabled = "true"' | Select-Object IPAddress, DefaultIPGateway, Description, DHCPEnabled }
           $getHDDSpace = Invoke-Command -Session $session -EA SilentlyContinue -ScriptBlock { (Get-WmiObject -class win32_logicaldisk | where-object { $_.DeviceID -ne 'A:' -and $_.DeviceID -ne 'D:' }  ) }
-          # | Select DeviceID,@{n='FreeSpace';e={$_.FreeSpace / 1GB -as [int]}},@{n='RemainingSpace';e={($_.Size / 1GB -as [int]) - ($_.FreeSpace / 1GB) -as [int]}}
 
           ## Gets Software Information
           $getLastUser = Invoke-Command -Session $session -EA SilentlyContinue -ScriptBlock { $Path = 'HKLM:\Software\Microsoft\windows\currentVersion\Authentication\LogonUI' ; Get-ItemProperty -Path $Path -Name LastLoggedOnUser | Select -ExpandProperty LastLoggedOnUser }
@@ -89,19 +88,6 @@ if ($DHCPsubnet = '255.255.255.0') {
           $getInstalledSoftware = Invoke-Command -Session $session -EA SilentlyContinue -ScriptBlock { (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*) }
           $getPSVersion = Invoke-Command -Session $session -EA SilentlyContinue -ScriptBlock { ($PSVersionTable.PSVersion).Major }
 
-          ## Share stuff
-          $Test = $getShareInfo.Name | Select-String -Pattern '$IPC' -NotMatch
-
-          ## Creats an unnamed array for the HDD Information, selects the info, writes each to a string then removes commas and adds line breaks etc
-          $HDDInfoArray = @()
-          $HDDInfoArray += $getHDDspace | select DeviceID, FreeSpace, RemainingSpace -expand
-          $FinalHDD = $HDDInfoArray -replace “\n\r”, ””
-
-          ## Creates an unnamed array for the Installed Software, writes each to a string then removes the commas and adds line breaks etc.
-          $SoftwareInfoArray = @()
-          $SoftwareInfoArray += $getInstalledSoftware | select DisplayName, DisplayVersion, Publisher, InstallDate -expand | ft | Out-string
-          $FinalSoftware = $SoftwareInfoArray -replace “\n\r”, ”” | Out-string
-      
           ## Start writing for the actual reporting version
           $testOutput = 
           @([pscustomobject]@{
