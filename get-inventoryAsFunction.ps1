@@ -7,9 +7,7 @@ function get-inventory {
 
   ## Gets hostname via .net PS
   $gethostname = $env:COMPUTERNAME
-     
-    
-    
+  
   ## Gets OS Version(windows only currently)
   $getOSver = (Get-WmiObject win32_operatingsystem).Caption 
 
