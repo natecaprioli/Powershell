@@ -88,7 +88,7 @@ function get-inventory {
   $FormatEnumerationLimit = -1
   ## This outputs everything into one grid for single pane viewing pleasure
     
-  $FinalOutput | Out-GridView
+  $FinalOutput
   
 }
 
