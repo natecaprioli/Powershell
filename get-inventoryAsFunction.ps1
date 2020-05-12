@@ -92,6 +92,6 @@ function get-inventory {
   ## This outputs everything into one grid for single pane viewing pleasure
     
   $FinalOutput
-  Set-ExecutionPolicy -ExecutionPolicy Signed 
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force
   
 }
