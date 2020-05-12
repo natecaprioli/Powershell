@@ -11,8 +11,7 @@ function get-inventory {
   ## Gets OS Version(windows only currently)
   $getOSver = (Get-WmiObject win32_operatingsystem).Caption 
 
-  ## Gets IP Address Only
-  $getIPAddress = get-wmiobject -class win32_networkadapterconfiguration -filter 'IPenabled = "true"' | select -expand IPAddress 
+  ## Sets variables for multiple wmi-object classes
   $wmiCompObject = Get-WmiObject -Class win32_ComputerSystem 
   $wmiProcObject = Get-WmiObject -Class Win32_Processor 
   $wmiBIOSObject = Get-WmiObject -Class Win32_BIOS 
@@ -31,15 +30,19 @@ function get-inventory {
   $getNetworkAdapters = get-wmiobject -class win32_networkadapterconfiguration -filter 'IPenabled = "true"' | Select-Object IPAddress, DefaultIPGateway, Description, DHCPEnabled 
   $getHDDSpace = (Get-WmiObject -class win32_logicaldisk | where-object { $_.DeviceID -ne 'A:' -and $_.DeviceID -ne 'D:' }  ) 
 
+  ## Installs the Pending-Reboot module manually, since you need a specified nuget version and win7 doesn't have this natively. 
+  mkdir C:\temp -Force > out-null ; [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; (New-Object System.Net.WebClient).DownloadFile('https://gallery.technet.microsoft.com/scriptcenter/Get-PendingReboot-Query-bdb79542/file/139923/3/Get-PendingReboot.ps1', 'C:\temp\Get-PendingReboot.ps1')  ; import-module C:\temp\Get-PendingReboot.ps1
+
+
   ## Gets Software Information
   $getLastUser = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI' -Name LastLoggedOnUser | select -ExpandProperty LastLoggedOnUser
   $getLastPatch = (Get-WmiObject -Class win32_quickfixengineering).InstalledOn | Sort-Object | Select -last 1 
   $getBiosVer = $wmiBIOSObject.SMBIOSBIOSVERSION 
   $getShareInfo = Get-WmiObject -Class win32_share 
-  mkdir C:\temp -Force > out-null ; [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; (New-Object System.Net.WebClient).DownloadFile('https://gallery.technet.microsoft.com/scriptcenter/Get-PendingReboot-Query-bdb79542/file/139923/3/Get-PendingReboot.ps1', 'C:\temp\Get-PendingReboot.ps1')  ; import-module C:\temp\Get-PendingReboot.ps1
   $getPendingUpdates = Get-PendingReboot
   $getFireWallStatus = (Get-NetFirewallProfile) 
   $getInstalledSoftware = (Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*) 
+  $getFilteredSoftware = foreach ($sw in $getInstalledSoftware) { $sw.DisplayName + ' ' + $sw.InstallDate }
   $getPSVersion = ($PSVersionTable.PSVersion).Major 
   $FinalOutput = 
   @([pscustomobject]@{
@@ -79,7 +82,7 @@ function get-inventory {
       PendingReboot     = $getPendingUpdates.RebootPending | Out-String;
       WindowsFWprofile  = $getFireWallStatus.Name | Out-String;
       WindowsFWStatus   = $getFireWallStatus.enabled | ForEach-Object { if ($_ -eq '1') { Write-Output Enabled } } | Out-String;
-      
+      InstalledSoftware = $getFilteredSoftware | Out-String;
 
     })
 
@@ -89,6 +92,6 @@ function get-inventory {
   ## This outputs everything into one grid for single pane viewing pleasure
     
   $FinalOutput
+  Set-ExecutionPolicy -ExecutionPolicy Signed 
   
 }
-
